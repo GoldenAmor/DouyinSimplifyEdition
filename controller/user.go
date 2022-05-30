@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/RaymondCode/simple-demo/view_model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"sync/atomic"
@@ -9,16 +10,6 @@ import (
 // usersLoginInfo use map to store user info, and key is username+password for demo
 // user data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:            1,
-		Name:          "zhanglei",
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      true,
-	},
-}
-
 var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
@@ -29,7 +20,7 @@ type UserLoginResponse struct {
 
 type UserResponse struct {
 	Response
-	User User `json:"user"`
+	User view_model.User `json:"user"`
 }
 
 func Register(c *gin.Context) {
@@ -44,7 +35,7 @@ func Register(c *gin.Context) {
 		})
 	} else {
 		atomic.AddInt64(&userIdSequence, 1)
-		newUser := User{
+		newUser := view_model.User{
 			Id:   userIdSequence,
 			Name: username,
 		}

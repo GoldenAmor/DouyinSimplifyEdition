@@ -1,6 +1,8 @@
 package controller
 
-var DemoVideos = []Video{
+import "github.com/RaymondCode/simple-demo/view_model"
+
+var DemoVideos = []view_model.Video{
 	{
 		Id:            1,
 		Author:        DemoUser,
@@ -12,7 +14,7 @@ var DemoVideos = []Video{
 	},
 }
 
-var DemoComments = []Comment{
+var DemoComments = []view_model.Comment{
 	{
 		Id:         1,
 		User:       DemoUser,
@@ -21,10 +23,20 @@ var DemoComments = []Comment{
 	},
 }
 
-var DemoUser = User{
+var DemoUser = view_model.User{
 	Id:            1,
 	Name:          "TestUser",
 	FollowCount:   0,
 	FollowerCount: 0,
 	IsFollow:      false,
+}
+
+var usersLoginInfo = map[string]view_model.User{
+	"zhangleidouyin": {
+		Id:            1,
+		Name:          "zhanglei",
+		FollowCount:   10,
+		FollowerCount: 5,
+		IsFollow:      true,
+	},
 }
