@@ -1,6 +1,18 @@
-package controller
+package public
 
-var DemoVideos = []Video{
+import "github.com/RaymondCode/simple-demo/controller/vo"
+
+var UsersLoginInfo = map[string]vo.User{
+	"zhangleidouyin": {
+		Id:            1,
+		Name:          "zhanglei",
+		FollowCount:   10,
+		FollowerCount: 5,
+		IsFollow:      true,
+	},
+}
+
+var DemoVideos = []vo.Video{
 	{
 		Id:            1,
 		Author:        DemoUser,
@@ -12,7 +24,7 @@ var DemoVideos = []Video{
 	},
 }
 
-var DemoComments = []Comment{
+var DemoComments = []vo.Comment{
 	{
 		Id:         1,
 		User:       DemoUser,
@@ -21,7 +33,7 @@ var DemoComments = []Comment{
 	},
 }
 
-var DemoUser = User{
+var DemoUser = vo.User{
 	Id:            1,
 	Name:          "TestUser",
 	FollowCount:   0,
