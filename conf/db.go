@@ -9,7 +9,7 @@ type db struct {
 	Timeout  string
 }
 
-var DB = db{
+var MysqlDB = db{
 	Username: "root",
 	Password: "123456",
 	Host:     "43.138.135.43",
@@ -17,3 +17,10 @@ var DB = db{
 	DbName:   "Dousheng",
 	Timeout:  "10s",
 }
+
+//var RedisDB = db{
+//	Password: "123456",
+//	Host:     "43.138.135.43",
+//	Port:     6379,
+//	DbName:   "",
+//}

@@ -117,7 +117,7 @@ func UserInfo(c *gin.Context) {
 		return
 	}
 	//鉴权并获取登录用户信息
-	err = middleware.ParseToken(token)
+	_, err = middleware.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, vo.Response{
 			StatusCode: 1,

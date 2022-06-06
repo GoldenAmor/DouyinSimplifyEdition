@@ -21,7 +21,7 @@ type VideoListResponse struct {
 func Publish(c *gin.Context) {
 	token := c.PostForm("token")
 	//鉴权
-	if err := middleware.ParseToken(token); err != nil {
+	if _, err := middleware.ParseToken(token); err != nil {
 		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 		return
 	}
