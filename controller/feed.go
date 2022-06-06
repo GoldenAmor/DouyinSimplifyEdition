@@ -26,6 +26,14 @@ func Feed(c *gin.Context) {
 			},
 		})
 	}
+	//登陆状态
+	token := c.Query("token")
+	user, err := service.GetUserByToken(token)
+	if err == nil {
+		for i, video := range result {
+			result[i].IsFavorite = service.IsFavorite(user.ID, video.Id)
+		}
+	}
 	c.JSON(http.StatusOK, FeedResponse{
 		Response:  vo.Response{StatusCode: 0},
 		VideoList: result,

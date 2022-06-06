@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"path/filepath"
+	"strconv"
 )
 
 type VideoListResponse struct {
@@ -24,6 +25,11 @@ func Publish(c *gin.Context) {
 		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 		return
 	}
+	user, err := service.GetUserByToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		return
+	}
 	//获取视频数据
 	data, err := c.FormFile("data")
 	if err != nil {
@@ -34,7 +40,6 @@ func Publish(c *gin.Context) {
 		return
 	}
 	filename := filepath.Base(data.Filename)
-	user := service.GetUserByToken(token)
 	finalName := fmt.Sprintf("%d_%s", user.ID, filename)
 	saveFile := filepath.Join("./public/", finalName)
 	if err := c.SaveUploadedFile(data, saveFile); err != nil {
@@ -54,7 +59,7 @@ func Publish(c *gin.Context) {
 		return
 	}
 	//将视频信息插入数据库
-	err = service.CreateVideo(user, conf.CDN.Url+finalName, "")
+	err = service.CreateVideo(*user, conf.CDN.Url+finalName, "")
 	if err != nil {
 		c.JSON(http.StatusOK, vo.Response{
 			StatusCode: 1,
@@ -71,8 +76,23 @@ func Publish(c *gin.Context) {
 // PublishList all users have same publish video list
 func PublishList(c *gin.Context) {
 	token := c.Query("token")
-	fmt.Println(token)
-	userId := c.Query("user_id")
+	userIdData := c.Query("user_id")
+	userId, err := strconv.ParseInt(userIdData, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{
+			StatusCode: 1,
+			StatusMsg:  "Invalid user_id",
+		})
+		return
+	}
+	_, err = service.GetUserByToken(token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{
+			StatusCode: 1,
+			StatusMsg:  "Invalid token",
+		})
+		return
+	}
 	result, err := service.GetPublishList(userId)
 	if err != nil {
 		c.JSON(http.StatusOK, VideoListResponse{
@@ -82,6 +102,10 @@ func PublishList(c *gin.Context) {
 			},
 		})
 	}
+	for i, video := range result {
+		result[i].IsFavorite = service.IsFavorite(userId, video.Id)
+	}
+	fmt.Printf("%#v\n", result)
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: vo.Response{
 			StatusCode: 0,

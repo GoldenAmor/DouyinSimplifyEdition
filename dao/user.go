@@ -21,7 +21,7 @@ func GetUserDaoInstance() *User {
 }
 
 func (u *User) Create(object *repository.User) error {
-	return conn.DB.Create(&object).Error
+	return conn.DB.Create(object).Error
 }
 
 func (u *User) GetByName(username string) *repository.User {
@@ -33,7 +33,7 @@ func (u *User) GetByName(username string) *repository.User {
 	return result
 }
 
-func (u *User) GetById(id string) *repository.User {
+func (u *User) GetById(id int64) *repository.User {
 	result := &repository.User{}
 	err := conn.DB.Where("id = ?", id).First(result).Error
 	if err != nil {

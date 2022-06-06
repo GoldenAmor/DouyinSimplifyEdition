@@ -7,6 +7,7 @@ import (
 	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	"sync/atomic"
 )
 
@@ -47,7 +48,7 @@ func Register(c *gin.Context) {
 	if createError != nil {
 		fmt.Println(createError.Error())
 		c.JSON(http.StatusOK, vo.Response{
-			StatusCode: 2,
+			StatusCode: 1,
 			StatusMsg:  "Unexpected fault!",
 		})
 		return
@@ -56,7 +57,7 @@ func Register(c *gin.Context) {
 	token, err := middleware.GenerateToken(username, password)
 	if err != nil {
 		c.JSON(http.StatusOK, vo.Response{
-			StatusCode: 3,
+			StatusCode: 1,
 			StatusMsg:  "Fail to generate token",
 		})
 		return
@@ -85,7 +86,7 @@ func Login(c *gin.Context) {
 	//检查密码是否正确
 	if password != u.Password {
 		c.JSON(http.StatusOK, vo.Response{
-			StatusCode: 2,
+			StatusCode: 1,
 			StatusMsg:  "Wrong password!",
 		})
 		return
@@ -93,7 +94,7 @@ func Login(c *gin.Context) {
 	token, err := middleware.GenerateToken(username, password)
 	if err != nil {
 		c.JSON(http.StatusOK, vo.Response{
-			StatusCode: 3,
+			StatusCode: 1,
 			StatusMsg:  "Fail to generate token",
 		})
 	}
@@ -106,9 +107,17 @@ func Login(c *gin.Context) {
 
 func UserInfo(c *gin.Context) {
 	token := c.Query("token")
-	userId := c.Query("user_id")
+	userIdData := c.Query("user_id")
+	userId, err := strconv.ParseInt(userIdData, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{
+			StatusCode: 1,
+			StatusMsg:  "Invalid user_id",
+		})
+		return
+	}
 	//鉴权并获取登录用户信息
-	err := middleware.ParseToken(token)
+	err = middleware.ParseToken(token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, vo.Response{
 			StatusCode: 1,
@@ -116,17 +125,18 @@ func UserInfo(c *gin.Context) {
 		})
 		return
 	}
-	//获取用户信息
-	user := service.GetUserById(userId)
-	if user == nil {
+	user, err := service.GetUserByToken(token)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, vo.Response{
-			StatusCode: 2,
-			StatusMsg:  "Unexpected Error!",
+			StatusCode: 1,
+			StatusMsg:  "Invalid token",
 		})
 		return
 	}
+	//获取目标用户信息
+	userTarget := service.GetUserById(userId)
 	//当前用户是否关注了该用户
-	isFollow := service.IsFollow(0, user.ID)
+	isFollow := service.IsFollow(user.ID, userTarget.ID)
 	//转换
 	u := service.Transform2VoUser(user)
 	u.IsFollow = isFollow

@@ -27,7 +27,7 @@ func GetUserByName(username string) *repository.User {
 	return userDao.GetByName(username)
 }
 
-func GetUserById(id string) *repository.User {
+func GetUserById(id int64) *repository.User {
 	userDao := dao.GetUserDaoInstance()
 	return userDao.GetById(id)
 }

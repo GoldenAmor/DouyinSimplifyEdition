@@ -8,7 +8,7 @@ import (
 
 func CreateVideo(user repository.User, playUrl string, coverUrl string) error {
 	videoDao := dao.GetVideoInstance()
-	return videoDao.Create(&repository.Video{
+	return videoDao.Create(repository.Video{
 		AuthorId:      user.ID,
 		PlayUrl:       playUrl,
 		CoverUrl:      coverUrl,
@@ -16,7 +16,7 @@ func CreateVideo(user repository.User, playUrl string, coverUrl string) error {
 		CommentCount:  0,
 	})
 }
-func GetPublishList(userId string) ([]vo.Video, error) {
+func GetPublishList(userId int64) ([]vo.Video, error) {
 	videoDao := dao.GetVideoInstance()
 	videos, err := videoDao.GetVideosByAuthorId(userId)
 	if err != nil {
@@ -40,6 +40,26 @@ func GetVideos() ([]vo.Video, error) {
 		result[i] = Transform2VoVideo(video)
 	}
 	return result, nil
+}
+
+func GetVideoById(id int64) (*vo.Video, error) {
+	videoDao := dao.GetVideoInstance()
+	video, err := videoDao.GetVideoById(id)
+	if err != nil {
+		return nil, err
+	}
+	result := Transform2VoVideo(*video)
+	return &result, nil
+}
+
+func UpdateVideoFavoriteCount(videoId int64, count int64) error {
+	videoDao := dao.GetVideoInstance()
+	return videoDao.UpdateVideoFavorite(videoId, count)
+}
+
+func UpdateVideoCommentCount(videoId int64, count int64) error {
+	videoDao := dao.GetVideoInstance()
+	return videoDao.UpdateVideoCommentCount(videoId, count)
 }
 
 func Transform2VoVideo(video repository.Video) vo.Video {
