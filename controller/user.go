@@ -144,4 +144,5 @@ func UserInfo(c *gin.Context) {
 		Response: vo.Response{StatusCode: 0},
 		User:     *u,
 	})
+
 }

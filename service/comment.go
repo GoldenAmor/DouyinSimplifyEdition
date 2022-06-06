@@ -24,7 +24,7 @@ func CreateComment(userId int64, videoId int64, content string) error {
 		return err
 	}
 	//更新视频数据
-	err = UpdateVideoCommentCount(videoId, video.FavoriteCount+1)
+	err = UpdateVideoCommentCount(videoId, video.CommentCount+1)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func DeleteComment(commentId int64, videoId int64) error {
 		return err
 	}
 	//更新视频数据
-	err = UpdateVideoCommentCount(videoId, video.FavoriteCount-1)
+	err = UpdateVideoCommentCount(videoId, video.CommentCount-1)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/RaymondCode/simple-demo/controller/vo"
 	"github.com/RaymondCode/simple-demo/dao"
 	"github.com/RaymondCode/simple-demo/repository"
@@ -58,6 +59,8 @@ func UpdateVideoFavoriteCount(videoId int64, count int64) error {
 }
 
 func UpdateVideoCommentCount(videoId int64, count int64) error {
+	fmt.Println("更新")
+	fmt.Println(count)
 	videoDao := dao.GetVideoInstance()
 	return videoDao.UpdateVideoCommentCount(videoId, count)
 }

@@ -105,7 +105,7 @@ func PublishList(c *gin.Context) {
 	for i, video := range result {
 		result[i].IsFavorite = service.IsFavorite(userId, video.Id)
 	}
-	fmt.Printf("%#v\n", result)
+
 	c.JSON(http.StatusOK, VideoListResponse{
 		Response: vo.Response{
 			StatusCode: 0,
