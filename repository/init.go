@@ -8,7 +8,7 @@ func Init() error {
 	if err != nil {
 		return err
 	}
-	err = conn.DB.AutoMigrate(&Video{}, &User{}, &Favorite{}, &Comment{})
+	err = conn.DB.AutoMigrate(&Video{}, &User{}, &Favorite{}, &Comment{}, &Follow{}, &Follower{})
 	if err != nil {
 		return err
 	}
