@@ -1,9 +1,9 @@
 package conf
 
 type db struct {
-	Username string //Mysql测试用户，只有连接权限
+	Username string
 	Password string
-	Host     string //Wangfeng的腾讯云服务器的公网IP
+	Host     string
 	Port     int
 	DbName   string
 	Timeout  string
@@ -17,10 +17,3 @@ var MysqlDB = db{
 	DbName:   "Dousheng",
 	Timeout:  "10s",
 }
-
-//var RedisDB = db{
-//	Password: "123456",
-//	Host:     "43.138.135.43",
-//	Port:     6379,
-//	DbName:   "",
-//}
