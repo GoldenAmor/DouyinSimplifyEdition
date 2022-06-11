@@ -10,8 +10,6 @@ type Follower struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
-	User      User
 	UserId    int64
-	ByUser    User
 	ByUserId  int64
 }
