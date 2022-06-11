@@ -56,11 +56,18 @@ func Register(c *gin.Context) {
 	//合成token
 	token, err := middleware.GenerateToken(username, password)
 	if err != nil {
-		c.JSON(http.StatusOK, vo.Response{
+		c.JSON(http.StatusInternalServerError, vo.Response{
 			StatusCode: 1,
 			StatusMsg:  "Fail to generate token",
 		})
 		return
+	}
+	err = middleware.CacheToken(token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{
+			StatusCode: 1,
+			StatusMsg:  "Fail to Cache token",
+		})
 	}
 	//获取id
 	id := service.GetUserByName(username).ID
@@ -96,6 +103,13 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, vo.Response{
 			StatusCode: 1,
 			StatusMsg:  "Fail to generate token",
+		})
+	}
+	err = middleware.CacheToken(token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{
+			StatusCode: 1,
+			StatusMsg:  "Fail to Cache Token",
 		})
 	}
 	c.JSON(http.StatusOK, UserLoginResponse{
@@ -136,7 +150,13 @@ func UserInfo(c *gin.Context) {
 	//获取目标用户信息
 	userTarget := service.GetUserById(userId)
 	//当前用户是否关注了该用户
-	isFollow := service.IsFollow(user.ID, userTarget.ID)
+	isFollow, err := service.IsFollow(user.ID, userTarget.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{
+			StatusCode: 1,
+			StatusMsg:  "Unexpected error!",
+		})
+	}
 	//转换
 	u := service.Transform2VoUser(user)
 	u.IsFollow = isFollow

@@ -1,146 +1,104 @@
 package controller
 
 import (
-	"github.com/RaymondCode/simple-demo/conn"
 	"github.com/RaymondCode/simple-demo/controller/vo"
-	"github.com/RaymondCode/simple-demo/middleware"
+	"github.com/RaymondCode/simple-demo/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 type UserListResponse struct {
 	vo.Response
-	UserList []string `json:"user_list"`
+	UserList []vo.User `json:"user_list"`
 }
 
 // RelationAction no practical effect, just check if token is valid
 func RelationAction(c *gin.Context) {
-	FollowPrefix := "Follow"
-	FollowedPrefix := "Followed"
 	token := c.Query("token")
-	toUserId := c.Query("to_user_id")
+	toUserIdData := c.Query("to_user_id")
 	actionType := c.Query("action_type")
-	claim, err := middleware.ParseToken(token)
+	toUserId, err := strconv.ParseInt(toUserIdData, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadGateway, vo.Response{
-			StatusCode: 1,
-			StatusMsg:  "Invalid token",
-		})
+		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "video_id error"})
 		return
 	}
-
-	switch actionType {
-	case "1":
-		userId := FollowPrefix + claim.UserName
-		err = conn.RedisDB.SAdd(userId, toUserId).Err()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, vo.Response{
-				StatusCode: 1,
-				StatusMsg:  "Unexpected Wrong!",
-			})
-			return
-		}
-
-		toUserId = FollowedPrefix + toUserId
-		err = conn.RedisDB.SAdd(toUserId, claim.UserName).Err()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, vo.Response{
-				StatusCode: 1,
-				StatusMsg:  "Unexpected Wrong!",
-			})
-			return
-		}
-		c.JSON(http.StatusOK, vo.Response{
-			StatusCode: 0,
-			StatusMsg:  "关注成功！",
-		})
-
-	case "2":
-		userId := FollowPrefix + claim.UserName
-		err = conn.RedisDB.SRem(userId, toUserId).Err()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, vo.Response{
-				StatusCode: 1,
-				StatusMsg:  "Unexpected Wrong!",
-			})
-			return
-		}
-		toUserId = FollowedPrefix + toUserId
-		err = conn.RedisDB.SRem(toUserId, claim.UserName).Err()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, vo.Response{
-				StatusCode: 1,
-				StatusMsg:  "Unexpected Wrong!",
-			})
-			return
-		}
-		c.JSON(http.StatusOK, vo.Response{
-			StatusCode: 0,
-			StatusMsg:  "取关成功！",
-		})
+	user, err := service.GetUserByToken(token)
+	if err != nil {
+		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
+		return
 	}
+	if actionType == "1" {
+		err = service.Follow(user.ID, toUserId)
+	}
+
+	if actionType == "2" {
+		err = service.DeFollow(user.ID, toUserId)
+	}
+	if err != nil {
+		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "database error"})
+		return
+	}
+	c.JSON(http.StatusOK, vo.Response{StatusCode: 0})
 }
 
 // FollowList all users have same follow list
 func FollowList(c *gin.Context) {
-	prefix := "Follow"
-	userId := c.Query("user_id")
-	token := c.Query("token")
-	_, err := middleware.ParseToken(token)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, vo.Response{
-			StatusCode: 1,
-			StatusMsg:  "Invalid token",
-		})
-		return
-	}
-	userId = prefix + userId
-	UserList, err := conn.RedisDB.SMembers(userId).Result()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, vo.Response{})
-		return
-	}
-	c.JSON(http.StatusOK, UserListResponse{
-		Response: vo.Response{StatusCode: 0, StatusMsg: "Load FollowList Success!"},
-		UserList: UserList,
-	})
 
-	//c.JSON(http.StatusOK, UserListResponse{
-	//	Response: vo.Response{
-	//		StatusCode: 0,
-	//	},
-	//	UserList: []vo.User{public.DemoUser},
-	//})
+	token := c.Query("token")
+	userIdData := c.Query("user_id")
+	_, err := service.GetUserByToken(token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{StatusCode: 1, StatusMsg: "Invalid token!"})
+		return
+	}
+	userId, err := strconv.ParseInt(userIdData, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{StatusCode: 1, StatusMsg: "Unexpected error!"})
+		return
+	}
+	result, err := service.GetFollowListByUserID(userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{StatusCode: 1, StatusMsg: "Unexpected error!"})
+		return
+	}
+
+	c.JSON(http.StatusOK, UserListResponse{
+		Response: vo.Response{
+			StatusCode: 0,
+			StatusMsg:  "获取关注列表成功！",
+		},
+
+		UserList: result,
+	})
 }
 
 // FollowerList all users have same follower list
 func FollowerList(c *gin.Context) {
-	//c.JSON(http.StatusOK, UserListResponse{
-	//	Response: vo.Response{
-	//		StatusCode: 0,
-	//	},
-	//	UserList: []vo.User{public.DemoUser},
-	//})
 
-	prefix := "Followed"
-	userId := c.Query("user_id")
 	token := c.Query("token")
-	_, err := middleware.ParseToken(token)
+	userIdData := c.Query("user_id")
+	_, err := service.GetUserByToken(token)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, vo.Response{
-			StatusCode: 1,
-			StatusMsg:  "Invalid token",
-		})
+		c.JSON(http.StatusInternalServerError, vo.Response{StatusCode: 1, StatusMsg: "Invalid token!"})
 		return
 	}
-	userId = prefix + userId
-	UserList, err := conn.RedisDB.SMembers(userId).Result()
+	userId, err := strconv.ParseInt(userIdData, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, vo.Response{})
+		c.JSON(http.StatusInternalServerError, vo.Response{StatusCode: 1, StatusMsg: "Unexpected error!"})
 		return
 	}
+	result, err := service.GetFollowerListByUserID(userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, vo.Response{StatusCode: 1, StatusMsg: "Unexpected error!"})
+		return
+	}
+
 	c.JSON(http.StatusOK, UserListResponse{
-		Response: vo.Response{StatusCode: 0, StatusMsg: "Load FollowList Success!"},
-		UserList: UserList,
+		Response: vo.Response{
+			StatusCode: 0,
+			StatusMsg:  "获取粉丝列表成功！",
+		},
+		UserList: result,
 	})
 }

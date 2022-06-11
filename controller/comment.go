@@ -25,6 +25,7 @@ func CommentAction(c *gin.Context) {
 	}
 	//鉴权
 	user, err := service.GetUserByToken(token)
+
 	if err != nil {
 		c.JSON(http.StatusOK, vo.Response{StatusCode: 1, StatusMsg: "User doesn't exist"})
 		return
