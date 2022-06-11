@@ -41,3 +41,11 @@ func (u *User) GetById(id int64) *repository.User {
 	}
 	return result
 }
+
+func (u *User) UpdateUserFollowCount(toUserId int64, count int64) error {
+	return conn.DB.Model(&User{}).Where("id = ?", toUserId).Update("follow_count", count).Error
+}
+
+func (u *User) UpdateUserFollowedCount(byUserId int64, count int64) error {
+	return conn.DB.Model(&User{}).Where("id = ?", byUserId).Update("follower_count", count).Error
+}
