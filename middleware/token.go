@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"encoding/json"
+	"github.com/RaymondCode/simple-demo/service"
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
@@ -39,4 +41,23 @@ func ParseToken(token string) (*Claims, error) {
 		}
 	}
 	return nil, err
+}
+
+func CacheToken(token string) error {
+	claims, err := ParseToken(token)
+	if err != nil {
+		return err
+	}
+	user := service.GetUserByName(claims.UserName)
+	userInfoTemp, err := json.Marshal(&user)
+	if err != nil {
+		return err
+	}
+	userInfo := string(userInfoTemp)
+	timeForLive := time.Duration(claims.ExpiresAt) * time.Second
+	err = service.SaveUser2Redis(token, userInfo, timeForLive)
+	if err != nil {
+		return err
+	}
+	return nil
 }
