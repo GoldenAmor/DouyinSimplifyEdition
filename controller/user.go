@@ -8,14 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-	"sync/atomic"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
 // user data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-
-var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
 	vo.Response
@@ -41,8 +38,7 @@ func Register(c *gin.Context) {
 		})
 		return
 	}
-	//自增主键
-	atomic.AddInt64(&userIdSequence, 1)
+
 	//插入记录
 	createError := service.CreateUser(username, password)
 	if createError != nil {
